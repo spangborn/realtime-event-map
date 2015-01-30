@@ -2,7 +2,8 @@
 var socket = io();
 var host = "ws://narsil.local:3000/";
 var map;
-
+var streaming = true,
+    ping = 0;
 
 $(document).ready(function() {
 
@@ -162,8 +163,19 @@ $(document).ready(function() {
         mapTypeControl: true,
         mapTypeControlOptions: {
             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-            position: google.maps.ControlPosition.LEFT_BOTTOM
+            position: google.maps.ControlPosition.BOTTOM_CENTER
         },
+        zoomControl: true,
+        zoomControlOptions: {
+            style: google.maps.ZoomControlStyle.LARGE,
+            position: google.maps.ControlPosition.LEFT_CENTER
+        },
+        scaleControl: true,
+        streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.LEFT_TOP
+        }
+
         styles: simple_style
     };
 
@@ -173,6 +185,7 @@ $(document).ready(function() {
         // Send message to server to start sending data
         socket.emit("start events", "go");
         console.log("Starting streaming.");
+        streaming = true;
     });
 
     socket.on("event", function (data) {
@@ -182,17 +195,27 @@ $(document).ready(function() {
             position: latLong,
             map: map,
             title: data.ip,
-            icon: "/img/map-point.png"
+            icon: "/img/map-point.png",
+            animation: google.maps.Animation.DROP,
+            optimized: false
         });
+        ping = 0;
     });
 
     socket.on("ping", function (data) {
         //console.log("Ping: " + data);
         socket.emit("pong", data);
-
+        ping = 0;
     });
 
     socket.on("error", function () {
         console.log("An error occurred");
     });
+
+    // If we've lost contact with the server, attempt to reload the page (maybe change this to restart streaming?)
+    var pingCheck = setInterval(function() {
+        if (ping > 10) {
+            window.location.reload();
+        }
+    }, 1000);
 });
