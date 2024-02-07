@@ -1,11 +1,21 @@
-var express = require('express'),
-    logger = require('morgan'),
-    app = express(),
-    http = require('http'),
-    server = http.createServer(app),
-    io = require('socket.io').listen(server),
-    Chance = require('chance'),
-    geoip = require('geoip-lite');
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+const geoip = require('geoip-lite');
+const Chance = require('chance');
+const logger = require('morgan');
+
+// var express = require('express'),
+//     logger = require('morgan'),
+//     app = express(),
+//     http = require('http'),
+//     server = http.createServer(app),
+//     io = require('socket.io').listen(server),
+//     
+//     geoip = require('geoip-lite');
 
 // log requests
 app.use(logger('dev'));
@@ -19,8 +29,8 @@ var run = false;
 var ping = 0;
 
 // Create web socket connection.
-io.sockets.on('connection', function (socket) {
-
+io.on('connection', (socket) => {
+    
     // Tell client we're good to go
     socket.emit('status', { 'status': 'go' });
 
